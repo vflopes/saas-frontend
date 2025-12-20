@@ -56,6 +56,8 @@ resource "aws_cloudfront_distribution" "frontend_distribution" {
   is_ipv6_enabled     = true
   default_root_object = "index.html"
 
+  aliases = [local.root_domain]
+
   default_cache_behavior {
     allowed_methods  = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
     cached_methods   = ["GET", "HEAD"]
@@ -90,20 +92,8 @@ resource "aws_cloudfront_distribution" "frontend_distribution" {
   }
 }
 
-resource "aws_route53_record" "cloudfront_root_domain" {
-  zone_id = data.aws_route53_zone.root_domain.zone_id
-  name    = local.root_domain
-  type    = "A"
-
-  alias {
-    name                   = aws_cloudfront_distribution.frontend_distribution.domain_name
-    zone_id                = aws_cloudfront_distribution.frontend_distribution.hosted_zone_id
-    evaluate_target_health = false
-  }
-}
-
 resource "aws_route53_record" "cloudfront_aliases" {
-  for_each = coalesce(aws_cloudfront_distribution.frontend_distribution.aliases, toset([]))
+  for_each = aws_cloudfront_distribution.frontend_distribution.aliases
   zone_id  = data.aws_route53_zone.root_domain.zone_id
   name     = each.value
   type     = "A"
