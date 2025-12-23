@@ -2,7 +2,7 @@ import { createContext } from "react";
 
 export interface User {
   username: string;
-  role: string;
+  userId: string;
 }
 
 export interface AuthContextValue {

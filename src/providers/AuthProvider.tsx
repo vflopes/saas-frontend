@@ -36,8 +36,6 @@ export const AuthProvider: React.FC<{ children?: React.ReactNode }> = ({
     }),
   };
 
-  console.log("AuthContextValue:", authContextValue);
-
   return (
     <AuthContext.Provider value={authContextValue}>
       {children}
