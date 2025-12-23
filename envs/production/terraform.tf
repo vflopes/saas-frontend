@@ -26,7 +26,6 @@ data "aws_s3_bucket" "tfstate" {
   bucket = local.tfstate_bucket_name
 }
 
-
 data "aws_route53_zone" "root_domain" {
   name = local.root_domain
 }
