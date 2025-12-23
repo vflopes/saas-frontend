@@ -28,6 +28,12 @@ export const AuthProvider: React.FC<{ children?: React.ReactNode }> = ({
 
   const authContextValue: AuthContextValue = {
     isAuthenticated,
+    ...(user && {
+      user: {
+        username: user.username,
+        userId: user.userId,
+      },
+    }),
   };
 
   console.log("AuthContextValue:", authContextValue);
