@@ -116,6 +116,8 @@ describe("SignUpForm password requirement", () => {
   });
 
   test("trims surrounding whitespace before validating passwords", async () => {
+    const useSignUpMock = vi.mocked(useSignUp);
+
     const screen = render(<SignUpForm />);
 
     await userEvent.type(screen.getByLabelText(/e-mail/i), "test@example.com");
@@ -131,7 +133,7 @@ describe("SignUpForm password requirement", () => {
     await userEvent.click(screen.getByRole("button", { name: /submit/i }));
 
     await waitFor(() => {
-      expect(useSignUp().mutate).toHaveBeenCalledWith(
+      expect(useSignUpMock().mutate).toHaveBeenCalledWith(
         expect.objectContaining({ password: "Validpass1!" }),
         expect.any(Object)
       );
@@ -143,5 +145,50 @@ describe("SignUpForm password requirement", () => {
     expect(
       screen.queryByText(/passwords do not match/i)
     ).not.toBeInTheDocument();
+  });
+
+  test.each([
+    {
+      password: "Va1!",
+      message: /^password must be at least 8 characters long/i,
+      description: "rejects passwords shorter than 8 characters",
+    },
+    {
+      password: "validpass1!",
+      message: /password must include at least one uppercase letter/i,
+      description: "rejects passwords without uppercase letters",
+    },
+    {
+      password: "VALIDPASS1!",
+      message: /password must include at least one lowercase letter/i,
+      description: "rejects passwords without lowercase letters",
+    },
+    {
+      password: "Validpass!",
+      message: /password must include at least one digit/i,
+      description: "rejects passwords without digits",
+    },
+    {
+      password: "Validpass1",
+      message: /password must include at least one symbol/i,
+      description: "rejects passwords without symbols",
+    },
+  ])("$description", async ({ password, message }) => {
+    const useSignUpMock = vi.mocked(useSignUp);
+    const screen = render(<SignUpForm />);
+
+    await userEvent.type(screen.getByLabelText(/e-mail/i), "test@example.com");
+    await userEvent.type(screen.getByLabelText(/^Password$/i), password);
+    await userEvent.type(
+      screen.getByLabelText(/confirm your password/i),
+      password
+    );
+
+    await userEvent.click(screen.getByRole("button", { name: /submit/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(message)).toBeInTheDocument();
+      expect(useSignUpMock().mutate).not.toHaveBeenCalled();
+    });
   });
 });
