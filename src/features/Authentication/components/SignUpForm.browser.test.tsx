@@ -1,5 +1,5 @@
 import { describe, expect, test, vi } from "vitest";
-import { render, waitFor } from "@testing-library/react";
+import { render, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import SignUpForm from "./SignUpForm";
@@ -26,5 +26,38 @@ describe("SignUpForm password requirement", () => {
       ).toBeInTheDocument();
       expect(useSignUpMock().mutate).not.toHaveBeenCalled();
     });
+  });
+
+  test("hides password fields by default", () => {
+    const { getByLabelText } = render(<SignUpForm />);
+
+    const passwordInput = getByLabelText(/^Password$/i) as HTMLInputElement;
+    const confirmPasswordInput = getByLabelText(
+      /confirm your password/i
+    ) as HTMLInputElement;
+
+    expect(passwordInput.type).toBe("password");
+    expect(confirmPasswordInput.type).toBe("password");
+  });
+
+  test("allows toggling password visibility", async () => {
+    const { getByLabelText } = render(<SignUpForm />);
+
+    const passwordInput = getByLabelText(/^Password$/i) as HTMLInputElement;
+    const confirmPasswordInput = getByLabelText(
+      /confirm your password/i
+    ) as HTMLInputElement;
+
+    const toggleButton = within(
+      passwordInput.parentElement as HTMLElement
+    ).getByRole("button");
+
+    await userEvent.click(toggleButton);
+    expect(passwordInput.type).toBe("text");
+    expect(confirmPasswordInput.type).toBe("text");
+
+    await userEvent.click(toggleButton);
+    expect(passwordInput.type).toBe("password");
+    expect(confirmPasswordInput.type).toBe("password");
   });
 });
