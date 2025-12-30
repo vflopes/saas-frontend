@@ -10,6 +10,14 @@ vi.mock("../apis/sign-up.mutations", () => ({
   useSignUp: vi.fn().mockReturnValue({ mutate: vi.fn() }),
 }));
 
+vi.mock("@/hooks/use-recaptcha.ts", () => ({
+  __esModule: true,
+  default: vi.fn().mockReturnValue({
+    generateReCaptchaToken: vi.fn().mockResolvedValue("token"),
+    reCaptchaLoaded: true,
+  }),
+}));
+
 describe("SignUpForm password requirement", () => {
   beforeEach(() => {
     cleanup();
@@ -105,5 +113,35 @@ describe("SignUpForm password requirement", () => {
       expect(screen.getByText(/passwords do not match/i)).toBeInTheDocument();
       expect(useSignUpMock().mutate).not.toHaveBeenCalled();
     });
+  });
+
+  test("trims surrounding whitespace before validating passwords", async () => {
+    const screen = render(<SignUpForm />);
+
+    await userEvent.type(screen.getByLabelText(/e-mail/i), "test@example.com");
+    await userEvent.type(
+      screen.getByLabelText(/^Password$/i),
+      "  Validpass1!  "
+    );
+    await userEvent.type(
+      screen.getByLabelText(/confirm your password/i),
+      "  Validpass1!  "
+    );
+
+    await userEvent.click(screen.getByRole("button", { name: /submit/i }));
+
+    await waitFor(() => {
+      expect(useSignUp().mutate).toHaveBeenCalledWith(
+        expect.objectContaining({ password: "Validpass1!" }),
+        expect.any(Object)
+      );
+    });
+
+    expect(
+      screen.queryByText(/password must be at least 8 characters long/i)
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(/passwords do not match/i)
+    ).not.toBeInTheDocument();
   });
 });
