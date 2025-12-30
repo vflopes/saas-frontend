@@ -1,38 +1,45 @@
-import { describe, expect, test, vi } from "vitest";
-import { render, waitFor, within } from "@testing-library/react";
+import { beforeEach, describe, expect, test, vi } from "vitest";
+
+import { render, waitFor, within, cleanup } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import SignUpForm from "./SignUpForm";
 import { useSignUp } from "../apis/sign-up.mutations";
 
-// Prevent real network calls from the sign-up mutation
 vi.mock("../apis/sign-up.mutations", () => ({
   useSignUp: vi.fn().mockReturnValue({ mutate: vi.fn() }),
 }));
 
 describe("SignUpForm password requirement", () => {
+  beforeEach(() => {
+    cleanup();
+    vi.clearAllMocks();
+  });
+
   test("requires a password to submit", async () => {
     const useSignUpMock = vi.mocked(useSignUp);
 
-    const { getByRole, getByText } = render(<SignUpForm />);
+    const screen = render(<SignUpForm />);
 
-    const submitButton = getByRole("button", { name: /submit/i });
+    const submitButton = screen.getByRole("button", { name: /submit/i });
 
     await userEvent.click(submitButton);
 
     await waitFor(() => {
       expect(
-        getByText(/^Password must be at least 8 characters long/i)
+        screen.getByText(/^Password must be at least 8 characters long/i)
       ).toBeInTheDocument();
       expect(useSignUpMock().mutate).not.toHaveBeenCalled();
     });
   });
 
   test("hides password fields by default", () => {
-    const { getByLabelText } = render(<SignUpForm />);
+    const screen = render(<SignUpForm />);
 
-    const passwordInput = getByLabelText(/^Password$/i) as HTMLInputElement;
-    const confirmPasswordInput = getByLabelText(
+    const passwordInput = screen.getByLabelText(
+      /^Password$/i
+    ) as HTMLInputElement;
+    const confirmPasswordInput = screen.getByLabelText(
       /confirm your password/i
     ) as HTMLInputElement;
 
@@ -41,10 +48,12 @@ describe("SignUpForm password requirement", () => {
   });
 
   test("allows toggling password visibility", async () => {
-    const { getByLabelText } = render(<SignUpForm />);
+    const screen = render(<SignUpForm />);
 
-    const passwordInput = getByLabelText(/^Password$/i) as HTMLInputElement;
-    const confirmPasswordInput = getByLabelText(
+    const passwordInput = screen.getByLabelText(
+      /^Password$/i
+    ) as HTMLInputElement;
+    const confirmPasswordInput = screen.getByLabelText(
       /confirm your password/i
     ) as HTMLInputElement;
 
@@ -59,5 +68,42 @@ describe("SignUpForm password requirement", () => {
     await userEvent.click(toggleButton);
     expect(passwordInput.type).toBe("password");
     expect(confirmPasswordInput.type).toBe("password");
+  });
+
+  test("requires confirming the password before submitting", async () => {
+    const useSignUpMock = vi.mocked(useSignUp);
+
+    const screen = render(<SignUpForm />);
+
+    await userEvent.type(screen.getByLabelText(/e-mail/i), "test@example.com");
+    await userEvent.type(screen.getByLabelText(/^Password$/i), "Validpass1!");
+
+    await userEvent.click(screen.getByRole("button", { name: /submit/i }));
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/confirm password must be at least 8 characters long/i)
+      ).toBeInTheDocument();
+      expect(useSignUpMock().mutate).not.toHaveBeenCalled();
+    });
+  });
+
+  test("flags mismatched passwords and blocks submission", async () => {
+    const useSignUpMock = vi.mocked(useSignUp);
+
+    const screen = render(<SignUpForm />);
+
+    await userEvent.type(screen.getByLabelText(/e-mail/i), "test@example.com");
+    await userEvent.type(screen.getByLabelText(/^Password$/i), "Validpass1!");
+    await userEvent.type(
+      screen.getByLabelText(/confirm your password/i),
+      "Anotherpass1!"
+    );
+
+    await userEvent.click(screen.getByRole("button", { name: /submit/i }));
+    await waitFor(() => {
+      expect(screen.getByText(/passwords do not match/i)).toBeInTheDocument();
+      expect(useSignUpMock().mutate).not.toHaveBeenCalled();
+    });
   });
 });
