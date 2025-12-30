@@ -9,20 +9,21 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as SiginRouteImport } from './routes/sigin'
 import { Route as AboutRouteImport } from './routes/about'
+import { Route as UnauthRouteImport } from './routes/_unauth'
 import { Route as AuthRouteImport } from './routes/_auth'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as UnauthSignUpRouteImport } from './routes/_unauth.sign-up'
+import { Route as UnauthSignInRouteImport } from './routes/_unauth.sign-in'
 import { Route as AuthMeRouteImport } from './routes/_auth.me'
 
-const SiginRoute = SiginRouteImport.update({
-  id: '/sigin',
-  path: '/sigin',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AboutRoute = AboutRouteImport.update({
   id: '/about',
   path: '/about',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UnauthRoute = UnauthRouteImport.update({
+  id: '/_unauth',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -34,6 +35,16 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const UnauthSignUpRoute = UnauthSignUpRouteImport.update({
+  id: '/sign-up',
+  path: '/sign-up',
+  getParentRoute: () => UnauthRoute,
+} as any)
+const UnauthSignInRoute = UnauthSignInRouteImport.update({
+  id: '/sign-in',
+  path: '/sign-in',
+  getParentRoute: () => UnauthRoute,
+} as any)
 const AuthMeRoute = AuthMeRouteImport.update({
   id: '/me',
   path: '/me',
@@ -43,52 +54,64 @@ const AuthMeRoute = AuthMeRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/sigin': typeof SiginRoute
   '/me': typeof AuthMeRoute
+  '/sign-in': typeof UnauthSignInRoute
+  '/sign-up': typeof UnauthSignUpRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/sigin': typeof SiginRoute
   '/me': typeof AuthMeRoute
+  '/sign-in': typeof UnauthSignInRoute
+  '/sign-up': typeof UnauthSignUpRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_auth': typeof AuthRouteWithChildren
+  '/_unauth': typeof UnauthRouteWithChildren
   '/about': typeof AboutRoute
-  '/sigin': typeof SiginRoute
   '/_auth/me': typeof AuthMeRoute
+  '/_unauth/sign-in': typeof UnauthSignInRoute
+  '/_unauth/sign-up': typeof UnauthSignUpRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about' | '/sigin' | '/me'
+  fullPaths: '/' | '/about' | '/me' | '/sign-in' | '/sign-up'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/sigin' | '/me'
-  id: '__root__' | '/' | '/_auth' | '/about' | '/sigin' | '/_auth/me'
+  to: '/' | '/about' | '/me' | '/sign-in' | '/sign-up'
+  id:
+    | '__root__'
+    | '/'
+    | '/_auth'
+    | '/_unauth'
+    | '/about'
+    | '/_auth/me'
+    | '/_unauth/sign-in'
+    | '/_unauth/sign-up'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRouteWithChildren
+  UnauthRoute: typeof UnauthRouteWithChildren
   AboutRoute: typeof AboutRoute
-  SiginRoute: typeof SiginRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/sigin': {
-      id: '/sigin'
-      path: '/sigin'
-      fullPath: '/sigin'
-      preLoaderRoute: typeof SiginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/about': {
       id: '/about'
       path: '/about'
       fullPath: '/about'
       preLoaderRoute: typeof AboutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_unauth': {
+      id: '/_unauth'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof UnauthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_auth': {
@@ -104,6 +127,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_unauth/sign-up': {
+      id: '/_unauth/sign-up'
+      path: '/sign-up'
+      fullPath: '/sign-up'
+      preLoaderRoute: typeof UnauthSignUpRouteImport
+      parentRoute: typeof UnauthRoute
+    }
+    '/_unauth/sign-in': {
+      id: '/_unauth/sign-in'
+      path: '/sign-in'
+      fullPath: '/sign-in'
+      preLoaderRoute: typeof UnauthSignInRouteImport
+      parentRoute: typeof UnauthRoute
     }
     '/_auth/me': {
       id: '/_auth/me'
@@ -125,11 +162,24 @@ const AuthRouteChildren: AuthRouteChildren = {
 
 const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 
+interface UnauthRouteChildren {
+  UnauthSignInRoute: typeof UnauthSignInRoute
+  UnauthSignUpRoute: typeof UnauthSignUpRoute
+}
+
+const UnauthRouteChildren: UnauthRouteChildren = {
+  UnauthSignInRoute: UnauthSignInRoute,
+  UnauthSignUpRoute: UnauthSignUpRoute,
+}
+
+const UnauthRouteWithChildren =
+  UnauthRoute._addFileChildren(UnauthRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRouteWithChildren,
+  UnauthRoute: UnauthRouteWithChildren,
   AboutRoute: AboutRoute,
-  SiginRoute: SiginRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

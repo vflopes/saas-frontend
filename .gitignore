@@ -39,3 +39,10 @@ override.tf.json
 .env
 .env.local
 .env.*.local
+
+# Tanstack
+.tanstack/
+
+# Vitest
+.vitest/
+__screenshots__/
