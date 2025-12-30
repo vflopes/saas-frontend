@@ -147,6 +147,31 @@ describe("SignUpForm password requirement", () => {
     ).not.toBeInTheDocument();
   });
 
+  test("updates validation feedback while typing", async () => {
+    const screen = render(<SignUpForm />);
+    const passwordInput = screen.getByLabelText(
+      /^Password$/i
+    ) as HTMLInputElement;
+
+    await userEvent.type(passwordInput, "Short1!");
+    await userEvent.tab();
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/password must be at least 8 characters long/i)
+      ).toBeInTheDocument();
+    });
+
+    await userEvent.click(passwordInput);
+    await userEvent.type(passwordInput, "A");
+
+    await waitFor(() => {
+      expect(
+        screen.queryByText(/password must be at least 8 characters long/i)
+      ).not.toBeInTheDocument();
+    });
+  });
+
   test.each([
     {
       password: "Va1!",
