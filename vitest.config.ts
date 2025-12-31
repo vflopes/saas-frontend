@@ -7,6 +7,12 @@ import react from "@vitejs/plugin-react";
 export default defineConfig({
   plugins: [tsconfigPaths(), react()],
   test: {
+    coverage: {
+      enabled: true,
+    },
+    reporters: process.env.GITHUB_ACTIONS
+      ? ["tree", "github-actions"]
+      : ["tree"],
     projects: [
       {
         test: {
@@ -16,6 +22,9 @@ export default defineConfig({
         },
       },
       {
+        optimizeDeps: {
+          include: ["react", "react-dom", "react/jsx-dev-runtime"],
+        },
         test: {
           include: ["src/**/*.browser.{test,spec}.tsx"],
           name: "browser",

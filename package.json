@@ -9,7 +9,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest",
-    "coverage": "vitest run --coverage"
+    "coverage": "vitest run --browser.headless --coverage --silent"
   },
   "dependencies": {
     "@aws-amplify/auth": "^6.17.1",
