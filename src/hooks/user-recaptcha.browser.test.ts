@@ -1,8 +1,13 @@
-import { describe, expect, test, vi } from "vitest";
-import { renderHook, waitFor } from "@testing-library/react";
+import { describe, expect, test, vi, beforeEach } from "vitest";
+import { renderHook, waitFor, cleanup } from "@testing-library/react";
 import useReCaptcha from "./use-recaptcha";
 
 describe("useReCaptcha", () => {
+  beforeEach(() => {
+    cleanup();
+    vi.clearAllMocks();
+  });
+
   test("marks as loaded when grecaptcha is provided", async () => {
     const grecaptcha = {
       ready: (cb: () => void) => cb(),
