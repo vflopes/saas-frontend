@@ -24,6 +24,14 @@ describe("SignUpForm password requirement", () => {
     vi.clearAllMocks();
   });
 
+  test("renders the ReCaptcha statement", () => {
+    const view = render(<SignUpForm />);
+
+    expect(
+      view.getByText(/This site is protected by reCAPTCHA/i)
+    ).toBeInTheDocument();
+  });
+
   test("requires a password to submit", async () => {
     const useSignUpMock = vi.mocked(useSignUp);
 
