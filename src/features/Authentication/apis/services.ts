@@ -20,7 +20,7 @@ export const signUpService = async ({
       userAttributes: {
         email,
       },
-      clientMetadata: {
+      validationData: {
         reCaptchaToken,
       },
       // autoSignIn: {
