@@ -29,11 +29,20 @@ import ReCaptchaStatement from "@/components/layout/ReCaptchaStatement";
 
 export interface SignUpFormProps {
   onSuccess?: (value: SignUpSuccessValue) => void;
+  onError?: (error: Error) => void;
 }
 
-const SignUpForm: React.FC<SignUpFormProps> = ({ onSuccess }) => {
-  const { form, formError, isSubmitting, showPassword, setShowPassword } =
-    useSignUpForm({ onSuccess });
+const SignUpForm: React.FC<SignUpFormProps> = ({ onSuccess, onError }) => {
+  const {
+    form,
+    formError,
+    captchaError,
+    isSubmitting,
+    showPassword,
+    setShowPassword,
+    reCaptchaLoaded,
+    handleReloadPage,
+  } = useSignUpForm({ onSuccess });
 
   const passwordVisibilityToggle = (
     <Button
@@ -53,6 +62,20 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onSuccess }) => {
 
   return (
     <>
+      {captchaError && (
+        <Alert variant="destructive" className="w-full sm:max-w-md">
+          <AlertCircleIcon />
+          <AlertTitle>{captchaError}</AlertTitle>
+          <Button
+            variant="outline"
+            size="sm"
+            className="my-2 w-max"
+            onClick={handleReloadPage}
+          >
+            Reload Page
+          </Button>
+        </Alert>
+      )}
       {formError && (
         <Alert variant="destructive" className="w-full sm:max-w-md">
           <AlertCircleIcon />
@@ -75,7 +98,11 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onSuccess }) => {
             onSubmit={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              form.handleSubmit();
+              form.handleSubmit().catch(() => {
+                if (onError) {
+                  onError(new Error("Failed to submit sign up form"));
+                }
+              });
             }}
           >
             <fieldset disabled={isSubmitting}>
@@ -173,7 +200,11 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onSuccess }) => {
         <CardFooter>
           <fieldset disabled={isSubmitting}>
             <Field orientation="horizontal">
-              <Button type="submit" form="sign-up-form">
+              <Button
+                type="submit"
+                form="sign-up-form"
+                disabled={!reCaptchaLoaded || isSubmitting}
+              >
                 {isSubmitting ? (
                   <>
                     <Spinner /> Submitting...

@@ -18,8 +18,16 @@ export const AuthProvider: React.FC<{ children?: React.ReactNode }> = ({
           setIsAuthenticated(true);
           return user;
         } catch (error) {
-          setIsAuthenticated(false);
-          return null;
+          if (
+            error instanceof Error &&
+            error.name === "UserUnAuthenticatedException"
+          ) {
+            // User is not authenticated
+            setIsAuthenticated(false);
+            return null;
+          }
+          console.log(error);
+          throw error;
         }
       },
       retry: false,

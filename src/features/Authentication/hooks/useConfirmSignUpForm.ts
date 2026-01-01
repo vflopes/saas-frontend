@@ -22,7 +22,7 @@ export const useConfirmSignUpForm = ({
 
   const form = useForm({
     defaultValues: getConfirmSignUpDefaultValues(),
-    onSubmit: async ({ value }) => {
+    onSubmit: ({ value }) => {
       setIsSubmitting(true);
       setFormError(null);
       confirmSignUp.mutate(

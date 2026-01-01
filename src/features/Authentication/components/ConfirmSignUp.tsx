@@ -39,6 +39,7 @@ export interface ConfirmSignUpProps {
   destination: string;
 
   onSuccess?: (confirmSignUpOutput: ConfirmSignUpOutput) => void;
+  onError?: (error: Error) => void;
 }
 
 const ConfirmSignUp: React.FC<ConfirmSignUpProps> = ({
@@ -46,6 +47,7 @@ const ConfirmSignUp: React.FC<ConfirmSignUpProps> = ({
   deliveryMedium,
   destination,
   onSuccess,
+  onError,
 }) => {
   const { form, formError, isSubmitting } = useConfirmSignUpForm({
     username,
@@ -78,7 +80,11 @@ const ConfirmSignUp: React.FC<ConfirmSignUpProps> = ({
             onSubmit={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              form.handleSubmit();
+              form.handleSubmit().catch(() => {
+                if (onError) {
+                  onError(new Error("Failed to submit confirm sign up form"));
+                }
+              });
             }}
           >
             <fieldset disabled={isSubmitting}>

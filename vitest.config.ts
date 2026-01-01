@@ -9,6 +9,7 @@ export default defineConfig({
   test: {
     coverage: {
       enabled: true,
+      exclude: ["src/components/ui/**"],
     },
     reporters: process.env.GITHUB_ACTIONS
       ? ["tree", "github-actions"]
@@ -16,7 +17,7 @@ export default defineConfig({
     projects: [
       {
         test: {
-          include: ["src/**/*.unit.{test,spec}.ts"],
+          include: ["src/**/*.unit.{test,spec}.{tsx,ts}"],
           name: "unit",
           environment: "node",
         },
@@ -26,7 +27,7 @@ export default defineConfig({
           include: ["react", "react-dom", "react/jsx-dev-runtime"],
         },
         test: {
-          include: ["src/**/*.browser.{test,spec}.tsx"],
+          include: ["src/**/*.browser.{test,spec}.{tsx,ts}"],
           name: "browser",
           alias: {
             "@": resolve(__dirname, "./src"),

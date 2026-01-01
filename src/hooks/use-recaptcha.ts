@@ -1,13 +1,20 @@
 import { useEffect, useState } from "react";
 
+interface Grecaptcha {
+  ready: (callback: () => void) => void;
+  execute: (siteKey: string, options: { action: string }) => Promise<string>;
+}
+
 declare global {
   interface Window {
-    grecaptcha: any;
+    grecaptcha: Grecaptcha;
   }
 }
 
 export interface UseReCaptchaOptions {
   siteKey?: string;
+  grecaptcha?: Grecaptcha;
+  loadScript?: (siteKey: string, onLoad: () => void) => void | (() => void);
 }
 
 export interface ReCaptchaResponse {
@@ -23,13 +30,33 @@ export interface UseReCaptchaReturn {
   reCaptchaLoaded: boolean;
 }
 
+const defaultLoadScript = (
+  siteKey: string,
+  onLoad: () => void
+): (() => void) => {
+  const script = document.createElement("script");
+  script.async = true;
+  script.src = `https://www.google.com/recaptcha/api.js?render=${siteKey}`;
+  script.addEventListener("load", onLoad);
+  document.body.appendChild(script);
+
+  return () => {
+    script.removeEventListener("load", onLoad);
+    document.body.removeChild(script);
+  };
+};
+
 const useReCaptcha = ({
   siteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY,
+  grecaptcha,
+  loadScript = defaultLoadScript,
 }: UseReCaptchaOptions = {}): UseReCaptchaReturn => {
   const [reCaptchaLoaded, setReCaptchaLoaded] = useState(false);
 
   useEffect(() => {
-    if (window.grecaptcha) {
+    const globalGrecaptcha = grecaptcha ?? window.grecaptcha;
+
+    if (globalGrecaptcha) {
       setReCaptchaLoaded(true);
       return;
     }
@@ -38,37 +65,31 @@ const useReCaptcha = ({
       return;
     }
 
-    const script = document.createElement("script");
-
-    script.async = true;
-    script.src = `https://www.google.com/recaptcha/api.js?render=${siteKey}`;
-    script.addEventListener("load", () => {
+    const cleanup = loadScript(siteKey, () => {
       setReCaptchaLoaded(true);
     });
 
-    document.body.appendChild(script);
-
-    return () => {
-      document.body.removeChild(script);
-    };
-  }, [siteKey, reCaptchaLoaded]);
+    return typeof cleanup === "function" ? cleanup : undefined;
+  }, [siteKey, reCaptchaLoaded, loadScript, grecaptcha]);
 
   const generateReCaptchaToken = async (action: string): Promise<string> => {
     if (!reCaptchaLoaded) {
       throw new Error("ReCaptcha not loaded");
     }
 
-    if (typeof window === "undefined" || !window.grecaptcha) {
+    const globalGrecaptcha = grecaptcha ?? window.grecaptcha;
+
+    if (typeof window === "undefined" || !globalGrecaptcha) {
       setReCaptchaLoaded(false);
       throw new Error("ReCaptcha not loaded");
     }
 
     await new Promise((resolve) => {
-      window.grecaptcha.ready(() => {
+      globalGrecaptcha.ready(() => {
         resolve(true);
       });
     });
-    return await window.grecaptcha.execute(siteKey, { action });
+    return await globalGrecaptcha.execute(siteKey, { action });
   };
 
   return {

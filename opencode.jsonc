@@ -1,0 +1,17 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "model": "github-copilot/gpt-5.1-codex",
+  "autoupdate": true,
+  "agent": {
+    "build": {
+      "description": "Makes code changes to meet the plan specification to apply requirements and match acceptance criteria",
+      "temperature": 0.1,
+      "maxSteps": 10,
+    },
+    "plan": {
+      "description": "Plans changes in the project based on the provided context, requirements and acceptance criteria.",
+      "temperature": 0.2,
+      "maxSteps": 8,
+    },
+  },
+}

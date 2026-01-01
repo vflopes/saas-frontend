@@ -5,6 +5,7 @@ import userEvent from "@testing-library/user-event";
 
 import SignUpForm from "./SignUpForm";
 import { useSignUp } from "../apis/sign-up.mutations";
+import useReCaptcha from "@/hooks/use-recaptcha.ts";
 
 vi.mock("../apis/sign-up.mutations", () => ({
   useSignUp: vi.fn().mockReturnValue({ mutate: vi.fn() }),
@@ -18,10 +19,20 @@ vi.mock("@/hooks/use-recaptcha.ts", () => ({
   }),
 }));
 
+const mockUseReCaptcha = vi.mocked(useReCaptcha);
+
 describe("SignUpForm password requirement", () => {
   beforeEach(() => {
     cleanup();
     vi.clearAllMocks();
+  });
+
+  test("renders the ReCaptcha statement", () => {
+    const view = render(<SignUpForm />);
+
+    expect(
+      view.getByText(/This site is protected by reCAPTCHA/i)
+    ).toBeInTheDocument();
   });
 
   test("requires a password to submit", async () => {
@@ -65,9 +76,9 @@ describe("SignUpForm password requirement", () => {
       /confirm your password/i
     ) as HTMLInputElement;
 
-    const toggleButton = within(
-      passwordInput.parentElement as HTMLElement
-    ).getByRole("button");
+    const toggleButton = within(passwordInput.parentElement!).getByRole(
+      "button"
+    );
 
     await userEvent.click(toggleButton);
     expect(passwordInput.type).toBe("text");
@@ -215,5 +226,60 @@ describe("SignUpForm password requirement", () => {
       expect(screen.getByText(message)).toBeInTheDocument();
       expect(useSignUpMock().mutate).not.toHaveBeenCalled();
     });
+  });
+});
+
+describe("SignUpForm CAPTCHA handling", () => {
+  beforeEach(() => {
+    cleanup();
+    vi.clearAllMocks();
+    // Reset to default mock
+    mockUseReCaptcha.mockReturnValue({
+      generateReCaptchaToken: vi.fn().mockResolvedValue("token"),
+      reCaptchaLoaded: true,
+    });
+  });
+
+  test("displays CAPTCHA error and blocks submission when token generation fails", async () => {
+    const useSignUpMock = vi.mocked(useSignUp);
+    mockUseReCaptcha.mockReturnValue({
+      generateReCaptchaToken: vi
+        .fn()
+        .mockRejectedValue(new Error("CAPTCHA failed")),
+      reCaptchaLoaded: true,
+    });
+
+    const screen = render(<SignUpForm />);
+
+    await userEvent.type(screen.getByLabelText(/e-mail/i), "test@example.com");
+    await userEvent.type(screen.getByLabelText(/^Password$/i), "Validpass1!");
+    await userEvent.type(
+      screen.getByLabelText(/confirm your password/i),
+      "Validpass1!"
+    );
+
+    await userEvent.click(screen.getByRole("button", { name: /submit/i }));
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/couldn't verify you via reCAPTCHA/i)
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /reload page/i })
+      ).toBeInTheDocument();
+      expect(useSignUpMock().mutate).not.toHaveBeenCalled();
+    });
+  });
+
+  test("disables submit button when reCaptcha is not loaded", () => {
+    mockUseReCaptcha.mockReturnValue({
+      generateReCaptchaToken: vi.fn(),
+      reCaptchaLoaded: false,
+    });
+
+    const screen = render(<SignUpForm />);
+    const submitButton = screen.getByRole("button", { name: /submit/i });
+
+    expect(submitButton).toBeDisabled();
   });
 });
