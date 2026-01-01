@@ -18,9 +18,14 @@ export const useSignUpSuccess = ({
   useEffect(() => {
     if (remainingSeconds <= 0) {
       if (autoSignInOnExpire) {
-        autoSignIn.refetch().then(() => {
-          if (onExpire) onExpire();
-        });
+        autoSignIn
+          .refetch()
+          .then(() => {
+            if (onExpire) onExpire();
+          })
+          .catch((error) => {
+            console.error("Auto sign-in failed on expire:", error);
+          });
         return;
       }
       if (onExpire) onExpire();

@@ -6,6 +6,7 @@ describe("useReCaptcha", () => {
   beforeEach(() => {
     cleanup();
     vi.clearAllMocks();
+    vi.stubEnv("VITE_RECAPTCHA_SITE_KEY", "test-site-key");
   });
 
   test("marks as loaded when grecaptcha is provided", async () => {
@@ -41,17 +42,15 @@ describe("useReCaptcha", () => {
   });
 
   test("calls loadScript when grecaptcha is missing", async () => {
-    const onLoad = vi.fn();
-    const loadScript = vi.fn().mockImplementation((_key, cb) => {
-      onLoad.mockImplementation(cb);
-      // Simulate returning cleanup fn
-      return () => {};
-    });
+    const loadScript = vi
+      .fn<(key: string, onLoad: () => void) => () => void>()
+      .mockImplementation((_key, onLoadCb) => {
+        onLoadCb();
+        const cleanup = vi.fn(() => undefined);
+        return cleanup;
+      });
 
     const { result } = renderHook(() => useReCaptcha({ loadScript }));
-
-    // Simulate script load completion
-    onLoad();
 
     await waitFor(() => {
       expect(result.current.reCaptchaLoaded).toBe(true);

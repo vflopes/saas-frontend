@@ -73,9 +73,9 @@ describe("SignUpForm password requirement", () => {
       /confirm your password/i
     ) as HTMLInputElement;
 
-    const toggleButton = within(
-      passwordInput.parentElement as HTMLElement
-    ).getByRole("button");
+    const toggleButton = within(passwordInput.parentElement!).getByRole(
+      "button"
+    );
 
     await userEvent.click(toggleButton);
     expect(passwordInput.type).toBe("text");

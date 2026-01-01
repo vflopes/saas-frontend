@@ -1,15 +1,15 @@
 import { useEffect, useState } from "react";
 
-declare global {
-  interface Window {
-    grecaptcha: any;
-  }
-}
-
-type Grecaptcha = {
+interface Grecaptcha {
   ready: (callback: () => void) => void;
   execute: (siteKey: string, options: { action: string }) => Promise<string>;
-};
+}
+
+declare global {
+  interface Window {
+    grecaptcha: Grecaptcha;
+  }
+}
 
 export interface UseReCaptchaOptions {
   siteKey?: string;

@@ -39,7 +39,7 @@ export const useSignUpFlow = ({
         value.signUpOutput.nextStep.codeDeliveryDetails;
 
       setConfirmationInfo({
-        deliveryMedium: deliveryMedium as DeliveryMedium,
+        deliveryMedium: deliveryMedium! as DeliveryMedium,
         destination: destination!,
       });
     }
@@ -54,7 +54,7 @@ export const useSignUpFlow = ({
   };
 
   const handleSignUpDone = () => {
-    navigate({
+    void navigate({
       to: "/sign-in",
       search: (prev) => ({ redirect: prev.redirect }),
     });

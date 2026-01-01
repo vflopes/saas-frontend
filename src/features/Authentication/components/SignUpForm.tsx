@@ -29,9 +29,10 @@ import ReCaptchaStatement from "@/components/layout/ReCaptchaStatement";
 
 export interface SignUpFormProps {
   onSuccess?: (value: SignUpSuccessValue) => void;
+  onError?: (error: Error) => void;
 }
 
-const SignUpForm: React.FC<SignUpFormProps> = ({ onSuccess }) => {
+const SignUpForm: React.FC<SignUpFormProps> = ({ onSuccess, onError }) => {
   const { form, formError, isSubmitting, showPassword, setShowPassword } =
     useSignUpForm({ onSuccess });
 
@@ -75,7 +76,11 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onSuccess }) => {
             onSubmit={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              form.handleSubmit();
+              form.handleSubmit().catch(() => {
+                if (onError) {
+                  onError(new Error("Failed to submit sign up form"));
+                }
+              });
             }}
           >
             <fieldset disabled={isSubmitting}>
