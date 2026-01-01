@@ -23,6 +23,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v5
 
+      - name: Create .env file
+        run: |
+          if [ -z "${{ vars.DOT_ENV }}" ]; then
+            echo "DOT_ENV variable is empty or undefined." >&2
+            exit 1
+          fi
+          printf "%s\n" "${{ vars.DOT_ENV }}" > .env
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v5.1.1
         with:
