@@ -51,3 +51,14 @@ Testing is done using `vitest` and `@testing-library` for unit and browser testi
 - `yarn preview`: Previews the production build locally.
 - `yarn test`: Runs unit tests with `vitest` but keeps the test runner active for watching file changes.
 - `yarn coverage`: Runs unit tests and generates a coverage report.
+- `yarn lint`: Runs ESLint to check for code quality and style issues.
+
+## CI
+
+The project uses GitHub Actions for continuous integration. The CI pipeline includes:
+
+- Linting the codebase.
+- Running unit tests and generating coverage reports.
+- Building the application to ensure there are no build errors.
+
+When a new Pull Request is created or updated against the `main` branch, the CI pipeline is triggered automatically (see @.github/workflows/react_checks_on_pr.yml for details).

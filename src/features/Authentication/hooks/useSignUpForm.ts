@@ -12,27 +12,47 @@ interface UseSignUpFormProps {
   onSuccess?: (value: SignUpSuccessValue) => void;
 }
 
+const CAPTCHA_ERROR_MESSAGE =
+  "We couldn't verify you via reCAPTCHA. Please reload the page and try again.";
+
 export const useSignUpForm = ({ onSuccess }: UseSignUpFormProps) => {
   const [username] = useState(crypto.randomUUID());
   const [formError, setFormError] = useState<string | null>(null);
+  const [captchaError, setCaptchaError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   const signUp = useSignUp();
 
-  const { generateReCaptchaToken } = useReCaptcha();
+  const { generateReCaptchaToken, reCaptchaLoaded } = useReCaptcha();
+
+  const handleReloadPage = () => {
+    window.location.reload();
+  };
 
   const form = useForm({
     defaultValues: getSignUpDefaultValues(),
     onSubmit: async ({ value }) => {
       setIsSubmitting(true);
       setFormError(null);
+      setCaptchaError(null);
+
+      // Attempt to generate reCAPTCHA token before proceeding
+      let reCaptchaToken: string;
+      try {
+        reCaptchaToken = await generateReCaptchaToken("SignUp");
+      } catch {
+        setCaptchaError(CAPTCHA_ERROR_MESSAGE);
+        setIsSubmitting(false);
+        return;
+      }
+
       signUp.mutate(
         {
           username,
           email: value.email,
           password: value.password.trim(),
-          reCaptchaToken: await generateReCaptchaToken("SignUp"),
+          reCaptchaToken,
         },
         {
           onSuccess: (signUpOutput) => {
@@ -58,9 +78,12 @@ export const useSignUpForm = ({ onSuccess }: UseSignUpFormProps) => {
   return {
     form,
     formError,
+    captchaError,
     isSubmitting,
     showPassword,
     setShowPassword,
     username,
+    reCaptchaLoaded,
+    handleReloadPage,
   };
 };

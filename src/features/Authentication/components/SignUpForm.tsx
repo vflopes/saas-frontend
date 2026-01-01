@@ -33,8 +33,16 @@ export interface SignUpFormProps {
 }
 
 const SignUpForm: React.FC<SignUpFormProps> = ({ onSuccess, onError }) => {
-  const { form, formError, isSubmitting, showPassword, setShowPassword } =
-    useSignUpForm({ onSuccess });
+  const {
+    form,
+    formError,
+    captchaError,
+    isSubmitting,
+    showPassword,
+    setShowPassword,
+    reCaptchaLoaded,
+    handleReloadPage,
+  } = useSignUpForm({ onSuccess });
 
   const passwordVisibilityToggle = (
     <Button
@@ -54,6 +62,20 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onSuccess, onError }) => {
 
   return (
     <>
+      {captchaError && (
+        <Alert variant="destructive" className="w-full sm:max-w-md">
+          <AlertCircleIcon />
+          <AlertTitle>{captchaError}</AlertTitle>
+          <Button
+            variant="outline"
+            size="sm"
+            className="my-2 w-max"
+            onClick={handleReloadPage}
+          >
+            Reload Page
+          </Button>
+        </Alert>
+      )}
       {formError && (
         <Alert variant="destructive" className="w-full sm:max-w-md">
           <AlertCircleIcon />
@@ -178,7 +200,11 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onSuccess, onError }) => {
         <CardFooter>
           <fieldset disabled={isSubmitting}>
             <Field orientation="horizontal">
-              <Button type="submit" form="sign-up-form">
+              <Button
+                type="submit"
+                form="sign-up-form"
+                disabled={!reCaptchaLoaded || isSubmitting}
+              >
                 {isSubmitting ? (
                   <>
                     <Spinner /> Submitting...
