@@ -13,21 +13,32 @@ export const signUpService = async ({
   password,
   reCaptchaToken,
 }: SignUpParams) => {
-  return await signUp({
-    username,
-    password,
-    options: {
-      userAttributes: {
-        email,
+  try {
+    const signUpOutput = await signUp({
+      username,
+      password,
+      options: {
+        userAttributes: {
+          email,
+        },
+        validationData: {
+          reCaptchaToken,
+        },
+        // autoSignIn: {
+        //   authFlowType: "USER_AUTH",
+        // },
       },
-      validationData: {
-        reCaptchaToken,
-      },
-      // autoSignIn: {
-      //   authFlowType: "USER_AUTH",
-      // },
-    },
-  });
+    });
+    return signUpOutput;
+  } catch (error) {
+    if (error instanceof Error && error.message.startsWith("PreSignUp")) {
+      throw new Error(
+        error.message
+          .substring("PreSignUp failed with error ".length)
+          .slice(0, -1)
+      );
+    }
+  }
 };
 
 export interface ConfirmSignUpParams {

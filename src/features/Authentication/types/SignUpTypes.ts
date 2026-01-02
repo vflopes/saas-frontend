@@ -50,7 +50,7 @@ export const getConfirmSignUpDefaultValues = (): ConfirmSignUpData => ({
 export const ConfirmSignUpSchema = z.object({
   confirmationCode: z
     .string()
-    .min(6, "Confirmation code must be at least 6 characters long"),
+    .regex(/^\d{6}$/, "Confirmation code must be exactly 6 digits"),
 });
 
 export type DeliveryMedium = "EMAIL" | "SMS" | "PHONE" | "UNKNOWN";

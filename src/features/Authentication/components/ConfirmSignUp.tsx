@@ -31,7 +31,10 @@ import { AlertCircleIcon } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
 import { Button } from "@/components/ui/button";
 import type { ConfirmSignUpOutput } from "@aws-amplify/auth";
-import { useConfirmSignUpForm } from "../hooks/useConfirmSignUpForm";
+import {
+  sanitizeConfirmationCode,
+  useConfirmSignUpForm,
+} from "../hooks/useConfirmSignUpForm";
 
 export interface ConfirmSignUpProps {
   username: string;
@@ -104,8 +107,12 @@ const ConfirmSignUp: React.FC<ConfirmSignUpProps> = ({
                           name={field.name}
                           value={field.state.value}
                           onBlur={field.handleBlur}
-                          onChange={(value) => field.handleChange(value)}
+                          onChange={(value) =>
+                            field.handleChange(sanitizeConfirmationCode(value))
+                          }
                           aria-invalid={isInvalid}
+                          inputMode="numeric"
+                          pattern="[0-9]*"
                           maxLength={6}
                         >
                           <InputOTPGroup>

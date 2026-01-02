@@ -12,6 +12,9 @@ interface UseConfirmSignUpFormProps {
   onSuccess?: (output: ConfirmSignUpOutput) => void;
 }
 
+export const sanitizeConfirmationCode = (value: string) =>
+  value.replace(/\D/g, "").slice(0, 6);
+
 export const useConfirmSignUpForm = ({
   username,
   onSuccess,
