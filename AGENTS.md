@@ -44,6 +44,10 @@ This project is a SPA built with React and TypeScript, `yarn` is used as the pac
 
 Testing is done using `vitest` and `@testing-library` for unit and browser testing. Test files are located alongside the components/code they test, with a `.test.tsx` or `.test.ts` extension. Browser tests run in headless Chrome using `playwright`.
 
+When testing any piece of code with TSX (React components), prefer using `@testing-library/react` to render the components and interact with them as a user would. For non-UI code, use `vitest` to write unit tests.
+
+The test files must end with `.browser.test.tsx` for browser tests and `.unit.test.ts` for non-UI unit tests.
+
 ## Commands
 
 - `yarn dev`: Starts the development server.

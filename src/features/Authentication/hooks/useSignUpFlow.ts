@@ -50,7 +50,8 @@ export const useSignUpFlow = ({
   const handleConfirmSignUpSuccess = (
     confirmSignUpOutput: ConfirmSignUpOutput
   ) => {
-    setSignUpStep(confirmSignUpOutput.nextStep.signUpStep);
+    const nextStep = confirmSignUpOutput.nextStep.signUpStep ?? "DONE";
+    setSignUpStep(nextStep);
   };
 
   const handleSignUpDone = () => {
